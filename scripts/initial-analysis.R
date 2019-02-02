@@ -68,20 +68,25 @@ cox_fit <- coxph(surv ~ cafe_type + party + gender, data = cafe)
 cox_fit
 
 
-# AFT regression model ----------------------------------------------------
+# Regression models -------------------------------------------------------
 
 # config for survplot
 config = list("confidence" = FALSE,
               "methods" = c("geom_step", rep("geom_line", 3)))
+loglog_config = list("confidence" = FALSE,
+                     "methods" = c("geom_step", "geom_line"),
+                     "palette" = brewer.pal(4, "Set1")[c(1, 4)])
 
 # in univ
 univ <- cafe$cafe_type == "in_univ"
-univ_aft <- aft_models(cafe, subset = univ, shift = 7)
-multiplot(plotlist = univ_aft$diagnosis, cols = 3)
-survplot(plotlist = univ_aft$models, config = config)
+univ_regmod <- fit_regression_models(cafe, subset = univ, shift = 5)
+multiplot(plotlist = univ_regmod$diagnosis, cols = 3)
+survplot(survfit_list = univ_regmod$survfits, config = config)
+survplot(survfit_list = univ_regmod$survfits[c(1, 4)], config = loglog_config)
 
 # near offices
 office <- cafe$cafe_type == "near_offices"
-office_aft <- aft_models(cafe, subset = office, shift = 0)
-multiplot(plotlist = office_aft$diagnosis, cols = 3)
-survplot(plotlist = office_aft$models, config = config)
+office_regmod <- fit_regression_models(cafe, subset = office, shift = 0)
+multiplot(plotlist = office_regmod$diagnosis, cols = 3)
+survplot(survfit_list = office_regmod$survfits, config = config)
+survplot(survfit_list = office_regmod$survfits[c(1, 4)], config = loglog_config)

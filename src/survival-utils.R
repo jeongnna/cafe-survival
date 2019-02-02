@@ -1,6 +1,6 @@
-survplot <- function(..., plotlist = NULL, config = NULL) {
-  plots <- c(list(...), plotlist)
-  num_plots <- length(plots)
+survplot <- function(..., survfit_list = NULL, config = NULL) {
+  survfits <- c(list(...), survfit_list)
+  num_survfits <- length(survfits)
 
   if (is.null(config)) {
     config <- list()
@@ -9,21 +9,21 @@ survplot <- function(..., plotlist = NULL, config = NULL) {
     config$confidence <- TRUE
   }
   if (is.null(config$methods)) {
-    config$methods <- rep("geom_step", num_plots)
+    config$methods <- rep("geom_step", num_survfits)
   }
   if (is.null(config$palette)) {
-    config$palette <- brewer.pal(num_plots, "Set1")[1:num_plots]
+    config$palette <- brewer.pal(num_survfits, "Set1")[1:num_survfits]
   }
   if (is.null(config$labs)) {
     config$labs <- c("title" = "",
-    	             "x" = "Time(min)",
-    	             "y" = "Survival probability")
+    	               "x" = "Time(min)",
+    	               "y" = "Survival probability")
   }
 
   p <- ggplot()
 
-  for (i in seq_along(plots)) {
-    data <- as_tibble(plots[[i]])
+  for (i in seq_along(survfits)) {
+    data <- as_tibble(survfits[[i]])
     method <- get(config$methods[i])
     color <- config$palette[i]
 
@@ -38,7 +38,9 @@ survplot <- function(..., plotlist = NULL, config = NULL) {
 
   p +
     scale_y_continuous(limits = c(0, 1)) +
-    labs(title = config$labs["title"], x = config$labs["x"], y = config$labs["y"]) +
+    labs(title = config$labs["title"],
+         x = config$labs["x"],
+         y = config$labs["y"]) +
     theme_bw()
 }
 
@@ -91,7 +93,7 @@ diagnose_dist <- function(formula, print_plot = TRUE) {
 }
 
 
-aft_models <- function(data, subset = NULL, shift = NULL) {
+fit_regression_models <- function(data, subset = NULL, shift = NULL) {
   if (is.null(subset)) {
     subset <- 1:nrow(data)
   }
@@ -103,7 +105,6 @@ aft_models <- function(data, subset = NULL, shift = NULL) {
 
   # shift event time
   if (!is.null(shift)) {
-    shift <- 7
     data <-
       data %>%
       mutate(event_time = event_time - shift) %>%
@@ -116,14 +117,14 @@ aft_models <- function(data, subset = NULL, shift = NULL) {
   # diagnose dists
   diagnosis <- diagnose_dist(survobj ~ 1, print_plot = FALSE)
 
-  # regression model
+  # regression models
   exp_survfit <- survreg2(survobj, dist = "exponential", shift = shift)
   weibull_survfit <- survreg2(survobj, dist = "weibull", shift = shift)
   loglog_survfit <- survreg2(survobj, dist = "loglogistic", shift = shift)
-  models <- list("baseline" = km_survfit,
-                 "exponential" = exp_survfit,
-                 "weibull" = weibull_survfit,
-                 "loglogistic" = loglog_survfit)
+  survfits <- list("baseline" = km_survfit,
+                   "exponential" = exp_survfit,
+                   "weibull" = weibull_survfit,
+                   "loglogistic" = loglog_survfit)
 
-  list("diagnosis" = diagnosis, "models" = models)
+  list("diagnosis" = diagnosis, "survfits" = survfits)
 }
