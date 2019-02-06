@@ -54,7 +54,6 @@ raw data의 모습입니다. 여기에서 `in_time`은 손님이 입장한 시�
 <p align="center">
 <i> X = (퇴장시간) - (입장시간)<br> C = (관찰종료시간) - (입장시간)<br> T = min(X, C)<br> δ = (uncensoring indicator) </i>
 </p>
-<br>
 
 ``` r
 (cafe <- 
