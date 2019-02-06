@@ -36,19 +36,12 @@ raw data의 모습입니다. 여기에서 `in_time`은 손님이 입장한 시�
 
 데이터를 생존분석에 맞는 형태로 만들기 위해 아래와 같이 전처리합니다. 최종적으로 `event_time`(*T*), `delta`(*δ*), `cafe_type` 변수를 사용했습니다.
 
-
-<p align="center">
-centered text
-</p>
-
-<center>
-centered text
-</center>
-
-*X = (퇴장시간) - (입장시간)*  
-*C = (관찰종료시간) - (입장시간)*  
-*T = min(X, C)*  
-*δ = (uncensoring indicator)*  
+<p align="center"><i>
+X = (퇴장시간) - (입장시간)<br>
+C = (관찰종료시간) - (입장시간)<br>
+T = min(X, C)<br>
+δ = (uncensoring indicator)
+</i></p>
 
 ```{r, include = FALSE}
 minimum <- function(..., na.rm = FALSE) {
