@@ -42,6 +42,7 @@ C = (관찰종료시간) - (입장시간)<br>
 T = min(X, C)<br>
 δ = (uncensoring indicator)
 </i></p>
+<br>
 
 ```{r, include = FALSE}
 minimum <- function(..., na.rm = FALSE) {
