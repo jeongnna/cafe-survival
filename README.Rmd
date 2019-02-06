@@ -1,5 +1,5 @@
 ---
-title: "생존분석을 이용한 카페 이용시간 추정 및 매장 규모 최적화"
+title: "생존분석을 이용한 카페 손님의 이용시간 추정 및 최적 테이블 수 제안"
 output: 
   github_document:
     toc: true
@@ -41,8 +41,7 @@ minimum <- function(..., na.rm = FALSE) {
          c = (end_of_study - in_time) %>% as.numeric(units = "mins"),
          event_time = minimum(x, c, na.rm = TRUE),
          delta = 1 - is.na(x)) %>% 
-  mutate(party = party_size > 1) %>% 
-  select(event_time, delta, cafe_type, party, gender))
+  select(event_time, delta, cafe_type))
 ```
 
 
@@ -93,7 +92,7 @@ tibble(time, hzd, type = c(rep(1, 46), rep(2, 31))) %>%
 #   summ <- summary(fit)
 # }
 
-cox_fit <- coxph(survobj ~ cafe_type + party + gender, data = cafe)
+cox_fit <- coxph(survobj ~ cafe_type, data = cafe)
 cox_fit
 ```
 

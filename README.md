@@ -1,4 +1,4 @@
-생존분석을 이용한 카페 이용시간 추정 및 매장 규모 최적화
+생존분석을 이용한 카페 손님의 이용시간 추정 및 최적 테이블 수 제안
 ================
 
 -   [Data preprocessing](#data-preprocessing)
@@ -48,23 +48,22 @@ Data preprocessing
          c = (end_of_study - in_time) %>% as.numeric(units = "mins"),
          event_time = minimum(x, c, na.rm = TRUE),
          delta = 1 - is.na(x)) %>% 
-  mutate(party = party_size > 1) %>% 
-  select(event_time, delta, cafe_type, party, gender))
+  select(event_time, delta, cafe_type))
 ```
 
-    ## # A tibble: 155 x 5
-    ##    event_time delta cafe_type party gender
-    ##         <dbl> <dbl> <chr>     <lgl> <chr> 
-    ##  1         26     1 in_univ   TRUE  male  
-    ##  2         47     1 in_univ   TRUE  male  
-    ##  3         34     1 in_univ   FALSE female
-    ##  4         22     1 in_univ   TRUE  mixed 
-    ##  5        140     1 in_univ   TRUE  mixed 
-    ##  6         49     1 in_univ   TRUE  female
-    ##  7         57     1 in_univ   TRUE  female
-    ##  8         22     1 in_univ   TRUE  mixed 
-    ##  9        173     1 in_univ   TRUE  female
-    ## 10         64     1 in_univ   FALSE female
+    ## # A tibble: 155 x 3
+    ##    event_time delta cafe_type
+    ##         <dbl> <dbl> <chr>    
+    ##  1         26     1 in_univ  
+    ##  2         47     1 in_univ  
+    ##  3         34     1 in_univ  
+    ##  4         22     1 in_univ  
+    ##  5        140     1 in_univ  
+    ##  6         49     1 in_univ  
+    ##  7         57     1 in_univ  
+    ##  8         22     1 in_univ  
+    ##  9        173     1 in_univ  
+    ## 10         64     1 in_univ  
     ## # ... with 145 more rows
 
 Non-parametric estimation
