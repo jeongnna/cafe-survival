@@ -27,7 +27,7 @@ survplot <- function(..., survfit_list = NULL, config = NULL) {
     method <- get(config$methods[i])
     color <- config$palette[i]
 
-    p <- p + method(aes(time, surv), data = data, col = color, size = 1)
+    p <- p + method(aes(time, surv), data = data, col = color)
     if (config$confidence == TRUE) {
       p <-
         p +
