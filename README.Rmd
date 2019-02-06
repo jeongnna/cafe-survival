@@ -1,0 +1,142 @@
+---
+title: "생존분석을 이용한 카페 이용객의 이용시간 추정 및 매장 내의 테이블 개수 최적화"
+output: 
+  github_document:
+    toc: true
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(survival)
+library(RColorBrewer)
+source("src/multiplot.R")
+source("src/survival-models.R")
+source("src/survival-utils.R")
+```
+
+
+## Data preprocessing
+
+```{r}
+(cafe_raw <- read_csv("data/cafe.csv"))
+```
+
+```{r, include = FALSE}
+minimum <- function(..., na.rm = FALSE) {
+  values <- cbind(...)
+  apply(values, 1, function(x) min(x, na.rm = na.rm))
+}
+```
+
+```{r}
+(cafe <- 
+  cafe_raw %>% 
+  mutate(x = (out_time - in_time) %>% as.numeric(units = "mins"),
+         c = (end_of_study - in_time) %>% as.numeric(units = "mins"),
+         event_time = minimum(x, c, na.rm = TRUE),
+         delta = 1 - is.na(x)) %>% 
+  mutate(party = party_size > 1) %>% 
+  select(event_time, delta, cafe_type, party, gender))
+```
+
+
+## Non-parametric estimation
+
+```{r}
+survobj <- with(cafe, Surv(event_time, event = delta))
+km_survfit <- kaplan_meier(survobj ~ 1)
+na_survfit <- nelson_aalen(survobj ~ 1)
+
+config <- list("confidence" = TRUE, 
+               "method" = c("geom_step", "geom_step"))
+
+survplot(km_survfit, na_survfit, config = config)
+```
+
+
+## Log-rank test
+
+```{r}
+(logrank <- survdiff(survobj ~ cafe_type, data = cafe))
+```
+
+```{r, include = FALSE}
+pval <- pchisq(logrank$chisq, df = 1, lower.tail = FALSE)
+```
+
+
+## Cox proportional hazard model (in progress)
+
+```{r, include = FALSE}
+fit <- survfit(survobj ~ cafe_type, data = cafe)
+summ <- summary(fit)
+
+time <- summ$time
+num_risk <- summ$n.risk
+num_event <- summ$n.event
+hzd <- num_event / num_risk
+
+tibble(time, hzd, type = c(rep(1, 46), rep(2, 31))) %>% 
+  mutate(type = factor(type)) %>% 
+  ggplot(aes(time, hzd, col = type, group = type)) +
+  geom_point() +
+  geom_smooth()
+
+# is_ph <- function(formula, data) {
+#   fit <- survfit(formula)
+#   summ <- summary(fit)
+# }
+
+cox_fit <- coxph(survobj ~ cafe_type + party + gender, data = cafe)
+cox_fit
+```
+
+
+## Regressiong models
+
+```{r, include = FALSE}
+# config for survplot
+config = list("confidence" = FALSE,
+              "methods" = c("geom_step", rep("geom_line", 3)))
+loglog_config = list("confidence" = FALSE,
+                     "methods" = c("geom_step", "geom_line"),
+                     "palette" = brewer.pal(4, "Set1")[c(1, 4)])
+```
+
+### 교내 카페
+
+```{r}
+univ_mask <- cafe$cafe_type == "in_univ"
+univ_regmod <- fit_regression_models(cafe, subset = univ_mask, shift = 5)
+multiplot(plotlist = univ_regmod$diagnosis, cols = 3)
+```
+
+```{r}
+allmod_plot <- survplot(survfit_list = univ_regmod$survfits, 
+                        config = config)
+loglog_plot <- survplot(survfit_list = univ_regmod$survfits[c(1, 4)], 
+                        config = loglog_config)
+multiplot(allmod_plot, loglog_plot, cols = 2)
+```
+
+### 선릉역 카페
+
+```{r}
+office_mask <- cafe$cafe_type == "near_offices"
+office_regmod <- fit_regression_models(cafe, subset = office_mask, shift = 0)
+multiplot(plotlist = office_regmod$diagnosis, cols = 3)
+```
+
+```{r}
+allmod_plot <- survplot(survfit_list = office_regmod$survfits, 
+                        config = config)
+loglog_plot <- survplot(survfit_list = office_regmod$survfits[c(1, 4)], 
+                        config = loglog_config)
+multiplot(allmod_plot, loglog_plot, cols = 2)
+```

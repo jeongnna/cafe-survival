@@ -8,12 +8,12 @@ source("src/survival-utils.R")
 
 # Preprocessing -----------------------------------------------------------
 
+cafe_raw <- read_csv("data/cafe.csv")
+
 minimum <- function(..., na.rm = FALSE) {
   values <- cbind(...)
   apply(values, 1, function(x) min(x, na.rm = na.rm))
 }
-
-cafe_raw <- read_csv("data/cafe.csv")
 
 cafe <- 
   cafe_raw %>% 
@@ -45,7 +45,7 @@ survdiff(survobj ~ gender, data = cafe, subset = gender_not_mixed)
 
 # Cox proportional hazard model -------------------------------------------
 
-fit <- survfit(surv ~ cafe_type, data = cafe)
+fit <- survfit(survobj ~ cafe_type, data = cafe)
 summ <- summary(fit)
 
 time <- summ$time
@@ -53,7 +53,7 @@ num_risk <- summ$n.risk
 num_event <- summ$n.event
 hzd <- num_event / num_risk
 
-tibble(time, hzd, type = c(rep(1, 50), rep(2, 31))) %>% 
+tibble(time, hzd, type = c(rep(1, 46), rep(2, 31))) %>% 
   mutate(type = factor(type)) %>% 
   ggplot(aes(time, hzd, col = type, group = type)) +
   geom_point() +
