@@ -35,6 +35,7 @@ survreg2 <- function(survobj, dist, shift = FALSE) {
   sigma <- fit$scale
   alpha <- 1 / sigma
   lambda <- exp(-mu / sigma)
+  params <- list("mu" = mu, "sigma" = sigma, "alpha" = alpha, "lambda" = lambda)
 
   x_max <- max(as.numeric(survobj))
   x <- 1:x_max
@@ -50,5 +51,5 @@ survreg2 <- function(survobj, dist, shift = FALSE) {
     surv <- c(rep(1, shift), surv)
   }
 
-  list("time" = x, "surv" = surv)
+  list("time" = x, "surv" = surv, "dist" = dist, "params" = params, "shift" = shift)
 }
